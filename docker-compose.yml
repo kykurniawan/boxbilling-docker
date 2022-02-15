@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  boxbilling:
+    build:
+      context: .
+      dockerfile: boxbilling.Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - boxbilling:/var/www/html
+    depends_on:
+      - database
+    environment:
+      SERVICE_NAME: boxbilling
+    networks:
+      - boxbilling_net
+    container_name: boxbilling
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    working_dir: /var/www/html
+    volumes_from:
+      - boxbilling
+    ports:
+      - 8004:80
+    networks:
+      - boxbilling_net
+    depends_on:
+      - boxbilling
+    container_name: web
+  database:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      - "MYSQL_DATABASE=boxbilling"
+      - "MYSQL_ROOT_PASSWORD=root"
+    ports:
+      - 3306:3306
+    networks:
+      - boxbilling_net
+    container_name: db
+volumes:
+  db_data:
+  boxbilling:
+networks:
+  boxbilling_net:
+    driver: bridge
